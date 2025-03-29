@@ -1,14 +1,16 @@
 CC :=  gcc #clang++
-CCFLAGS := -lm -Wextra -Wall -Wsign-conversion -Werror --std=c++23
-DEBUG = -g -fsanitize=address -Wall -Wextra -lefence #$(" ") #
+CCFLAGS := -lm -Wextra -Wall 
+DEBUG = $(" ") #-g -fsanitize=address -Wall -Wextra -lefence #$(" ") #
 
-all: main 
+execs = main parallel_main
 
-main: main.cc
-	$(CC) $(CCFLAGS) -o $@ $^ $(DEBUG)
+all: $(execs)
 
-%.o: %.cc
-	$(CC) $(CCFLAGS) -c $< -o $@
+parallel_main: parallel_main.c
+	$(CC) -fopenmp -o $@ $^ $(CCFLAGS) $(DEBUG) 
+
+main: main.c
+	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG)
 
 .PHONY: clean
 

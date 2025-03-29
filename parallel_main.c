@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 
 
 /*
@@ -48,16 +49,36 @@ double rand_normal(){
  */
 double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r, int seed){
 	double t = 1; // expire time
-	
 	double mu_t = (r - 0.5 * sigma * sigma) * t;
 	double sigma_sqrt_t = sigma * sqrt(t);
 	double total_payoff = 0;
 
-	srand(seed);
-	for (int i=0; i<n; i++){
-		double rv = rand_normal();
-		double S_T = S_0 * exp(mu_t + sigma_sqrt_t * rv);
-		total_payoff += fmax(S_T - k, 0);
+	#pragma omp parallel num_threads(4)
+	{
+		int id = omp_get_thread_num();
+		int nt = omp_get_num_threads();
+		int N = n/nt;
+
+		srand(seed);
+		double* rvs = malloc(N * sizeof(double));
+		for (int i=0; i<(id + 1)*N; i++){
+			rand_normal();	
+		}
+		for (int i=0; i<N; i++){
+			rvs[i] = rand_normal();	
+		}
+
+		double local_payoff = 0;
+		double S_T;
+		for (int i=0; i<N; i++){
+			S_T = S_0 * exp(mu_t + sigma_sqrt_t * rvs[i]);
+			local_payoff += fmax(S_T - k, 0);
+		}
+		
+		free(rvs);
+		
+		#pragma omp atomic	
+		total_payoff += local_payoff;
 	}
 	
 	return exp(-r * t) * (total_payoff / n);
@@ -70,13 +91,13 @@ int main(){
 	double k = 2;
 	double sigma = 2;
 	double r = 3;	
-	int seed = 69420;
-		
-
+	int seed = 69420;		
+	
 	double val;
-    val = monte_carlo_pricer(n, S_0, k, sigma, r, seed);
-
-    printf("val = %lf", val);	
-
+	val = monte_carlo_pricer(n, S_0, k, sigma, r, seed);
+	
+	printf("val = %lf", val);
+	
+	
 	return 0;
 }
