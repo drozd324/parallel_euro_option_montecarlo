@@ -1,5 +1,5 @@
 CC :=  gcc #clang++
-CCFLAGS := -lm -Wextra -Wall 
+CCFLAGS := -lm -lgsl -Wextra -Wall 
 DEBUG = $(" ") #-g -fsanitize=address -Wall -Wextra -lefence #$(" ") #
 
 execs = main parallel_main
@@ -7,7 +7,7 @@ execs = main parallel_main
 all: $(execs)
 
 parallel_main: parallel_main.c
-	$(CC) -fopenmp -o $@ $^ $(CCFLAGS) $(DEBUG) 
+	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG) -fopenmp
 
 main: main.c
 	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG)
