@@ -4,16 +4,17 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
-/*
- * @brief Monte carlo pricer for european option
- * 
- * @param n monte carlo samples
- * @param S_0 Spot price today 
- * @param k strike price
- * @param sigma Annual volatility
- * @param r Interest rate
- */
-double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
+	
+int main(){
+	int n = 100000000;
+	double S_0 = 10;
+	double k = 2;
+	double sigma = 2;
+	double r = 3;	
+	//int seed = 69420;		
+		
+	double val;
+
 	double t = 1; // expire time
 	double mu_t = (r - 0.5 * sigma * sigma) * t;
 	double sigma_sqrt_t = sigma * sqrt(t);
@@ -32,7 +33,7 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 	}
 	gsl_rng_free(rng);
 
-	#pragma omp parallel num_threads(8) reduction(+:total_payoff) 
+	#pragma omp parallel num_threads(4) reduction(+:total_payoff) 
 	{
 		int id = omp_get_thread_num();
 		int nt = omp_get_num_threads();
@@ -40,31 +41,15 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 		printf("id = %d\n", id);
 		int N = n/nt;
 		for (int i=id*N; i<(id+1)*N; i++){
-			//double rv = gsl_ran_gaussian(rng, 1);
 			double S_T = S_0 * exp(mu_t + sigma_sqrt_t * rvs[i]);
 			total_payoff += fmax(S_T - k, 0);
 		}
 	}
 	
 	free(rvs);
-	return exp(-r * t) * (total_payoff / n);
-} 
+	val = exp(-r * t) * (total_payoff / n);
 
-	
-int main(){
-	int n = 100000000;
-	double S_0 = 10;
-	double k = 2;
-	double sigma = 2;
-	double r = 3;	
-	//int seed = 69420;		
-		
-
-	double val;
-	val = monte_carlo_pricer(n, S_0, k, sigma, r);
-	
 	printf("val = %lf", val);
-	
 	
 	return 0;
 }

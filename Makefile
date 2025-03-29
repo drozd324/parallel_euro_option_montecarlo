@@ -1,10 +1,10 @@
-CC :=  gcc #clang++
-CCFLAGS := -lm -lgsl -Wextra -Wall 
-DEBUG = $(" ") #-g -fsanitize=address -Wall -Wextra -lefence #$(" ") #
+CC =  gcc #clang++
+CCFLAGS = -O3 -lm -lgsl -Wextra -Wall 
+DEBUG = $(" ")# -g -fsanitize=address -Wall -Wextra -lefence #$(" ") #
 
-execs = main parallel_main
+EXECS = main parallel_main
 
-all: $(execs)
+all: $(EXECS)
 
 parallel_main: parallel_main.c
 	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG) -fopenmp
@@ -15,4 +15,4 @@ main: main.c
 .PHONY: clean
 
 clean:
-	rm -f *.o $(execs)
+	rm -f *.o $(EXECS)

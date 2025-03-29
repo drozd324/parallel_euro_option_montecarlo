@@ -20,26 +20,30 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 		
 	const gsl_rng_type* T;
 	gsl_rng* rng;
-	
 	gsl_rng_env_setup();
-	
 	T = gsl_rng_default;
 	rng = gsl_rng_alloc(T);
 	
+	double* rvs = malloc(n * sizeof(double));
 	for (int i=0; i<n; i++){
-		//double rv = rand_normal();
-		double rv = gsl_ran_gaussian(rng, 1);
-		double S_T = S_0 * exp(mu_t + sigma_sqrt_t * rv);
+        rvs[i] = gsl_ran_gaussian(rng, 1);
+    }
+    gsl_rng_free(rng);
+	
+	for (int i=0; i<n; i++){
+		//double rv = gsl_ran_gaussian(rng, 1);
+		double S_T = S_0 * exp(mu_t + sigma_sqrt_t * rvs[i]);
 		total_payoff += fmax(S_T - k, 0);
 	}
+	free(rvs);
 	
-	gsl_rng_free(rng);
+	//gsl_rng_free(rng);
 	return exp(-r * t) * (total_payoff / n);
 } 
 
 
 int main(){
-	int n = 1000000;
+	int n = 100000000;
 	double S_0 = 10;
 	double k = 2;
 	double sigma = 2;
