@@ -1,16 +1,17 @@
 CC =  gcc #clang++
-CCFLAGS = -O3 -lm -lgsl -Wextra -Wall 
+MPICC = mpicc
+CCFLAGS = -O0 -lm -lgsl -Wextra -Wall 
 DEBUG = $(" ")# -g -fsanitize=address -Wall -Wextra -lefence #$(" ") #
 
-EXECS = main parallel_main
+EXECS = main parallel_main_omp
 
 all: $(EXECS)
 
-parallel_main: parallel_main.c
+parallel_main_omp: parallel_main_omp.c
 	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG) -fopenmp
 
 main: main.c
-	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG)
+	$(CC) -o $@ $^ $(CCFLAGS) $(DEBUG) 
 
 .PHONY: clean
 

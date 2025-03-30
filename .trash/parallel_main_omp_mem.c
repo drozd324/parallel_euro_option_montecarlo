@@ -32,7 +32,7 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 	}
 	gsl_rng_free(rng);
 
-	#pragma omp parallel num_threads(8) reduction(+:total_payoff) 
+	#pragma omp parallel num_threads(4) reduction(+:total_payoff) 
 	{
 		int id = omp_get_thread_num();
 		int nt = omp_get_num_threads();
@@ -52,7 +52,7 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 
 	
 int main(){
-	int n = 100000000;
+	int n = 100;
 	double S_0 = 10;
 	double k = 2;
 	double sigma = 2;

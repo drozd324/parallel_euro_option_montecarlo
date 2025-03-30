@@ -26,24 +26,16 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 	gsl_rng_env_setup();
 	T = gsl_rng_default;
 	rng = gsl_rng_alloc(T);
-
+	
 	for (int i=0; i<n; i++){
 		rvs[i] = gsl_ran_gaussian(rng, 1);	
 	}
 	gsl_rng_free(rng);
 
-	#pragma omp parallel num_threads(2) reduction(+:total_payoff) 
-	{
-		int id = omp_get_thread_num();
-		int nt = omp_get_num_threads();
-
-		printf("id = %d\n", id);
-		int N = n/nt;
-		for (int i=id*N; i<(id+1)*N; i++){
-			//double rv = gsl_ran_gaussian(rng, 1);
-			double S_T = S_0 * exp(mu_t + sigma_sqrt_t * rvs[i]);
-			total_payoff += fmax(S_T - k, 0);
-		}
+	#pragma omp parallel for num_threads(4) reduction(+:total_payoff) 
+	for (int i=0; i<n; i++){
+		double S_T = S_0 * exp(mu_t + sigma_sqrt_t * rvs[i]);
+		total_payoff += fmax(S_T - k, 0);
 	}
 	
 	free(rvs);
@@ -52,7 +44,7 @@ double monte_carlo_pricer(int n, double S_0, double k, double sigma, double r){
 
 	
 int main(){
-	int n = 100000000;
+	int n = 100000;
 	double S_0 = 10;
 	double k = 2;
 	double sigma = 2;
